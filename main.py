@@ -166,12 +166,13 @@ def create_and_run_bot(parameters, llm_api_key):
         resume_generator_manager = FacadeManager(llm_api_key, style_manager, resume_generator, resume_object, Path("data_folder/output"))
         
         # Run the resume generator manager's functions
-        resume_generator_manager.choose_style()
+        #resume_generator_manager.choose_style()
+        resume_generator_manager.selected_style = "Default"
         
         job_application_profile_object = JobApplicationProfile(plain_text_resume)
         
         browser = init_browser()
-        login_component = AIHawkAuthenticator(browser)
+        login_component = AIHawkAuthenticator(browser, sqlite3.connect('sqlite.db'),"san4es772@gmail.com")
         apply_component = AIHawkJobManager(browser)
         gpt_answerer_component = GPTAnswerer(parameters, llm_api_key)
         bot = AIHawkBotFacade(login_component, apply_component)
