@@ -11,22 +11,38 @@ from loguru import logger
 
 class AIHawkAuthenticator:
 
-    def __init__(self, driver=None):
+    def __init__(self, driver=None, db=None, email=None):
         self.driver = driver
+        self.db = db
+        self.email = email
         logger.debug(f"AIHawkAuthenticator initialized with driver: {driver}")
 
     def start(self):
         logger.info("Starting Chrome browser to log in to AIHawk.")
-        if self.is_logged_in():
-            logger.info("User is already logged in. Skipping login process.")
-            return
-        else:
-            logger.info("User is not logged in. Proceeding with login.")
-            self.handle_login()
+        self.handle_login()
 
     def handle_login(self):
         logger.info("Navigating to the AIHawk login page...")
-        self.driver.get("https://www.linkedin.com/login")
+
+        ##temp db entry
+        cursor = self.db.cursor()
+        cursor.execute("""SELECT cookie FROM users WHERE email=(?)""", (self.email,))
+        cookie_string = cursor.fetchone()[0]
+        cookie_pairs = cookie_string.split("; ")
+
+        # Convert back to the original structure (list of dictionaries)
+        cookies = []
+        for pair in cookie_pairs:
+            name, value = pair.split("=", 1)
+            cookies.append({"name": name, "value": value})
+        self.driver.get("https://www.linkedin.com/feed")
+        time.sleep(1)
+        self.driver.delete_all_cookies()
+        for cookie in cookies:
+            self.driver.add_cookie(cookie)
+        time.sleep(1)
+        self.driver.get("https://www.linkedin.com/")
+        time.sleep(4)
         if 'feed' in self.driver.current_url:
             logger.debug("User is already logged in.")
             return
@@ -65,7 +81,6 @@ class AIHawkAuthenticator:
 
         except TimeoutException:
             logger.error("Login form not found. Aborting login.")
-
 
     def handle_security_check(self):
         try:

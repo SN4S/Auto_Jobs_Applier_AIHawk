@@ -219,5 +219,22 @@ def main(collect: False, resume: Path = None):
     except Exception as e:
         logger.error(f"An unexpected error occurred: {str(e)}")
 
+
+def init_test_db():
+    conn = sqlite3.connect('sqlite.db')
+    cursor = conn.cursor()
+    cursor.execute("""CREATE TABLE IF NOT EXISTS users(
+    id INTEGER PRIMARY KEY,
+    email TEXT,
+    cookie TEXT,
+    last_run TEXT,
+    sub_end TEXT)""")
+    cookies = [
+        {"name": "g_state", "value": "\"i_l\":0"},
+        ]
+    cookie_string = "; ".join([f'{cookie["name"]}={cookie["value"]}' for cookie in cookies])
+    cursor.execute("""INSERT INTO users (email, cookie) VALUES (?, ? )""", ("san4es772@gmail.com", cookie_string))
+    conn.commit()
+
 if __name__ == "__main__":
     main()
