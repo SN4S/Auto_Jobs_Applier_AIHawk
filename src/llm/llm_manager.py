@@ -139,14 +139,14 @@ class LLMLogger:
         logger.debug(f"LLMLogger successfully initialized with LLM: {llm}")
 
     @staticmethod
-    def log_request(prompts, parsed_reply: Dict[str, Dict]):
+    def log_request(user,prompts, parsed_reply: Dict[str, Dict]):
         logger.debug("Starting log_request method")
         logger.debug(f"Prompts received: {prompts}")
         logger.debug(f"Parsed reply received: {parsed_reply}")
 
         try:
             calls_log = os.path.join(
-                Path("data_folder/output"), "open_ai_calls.json")
+                Path(f"data_folder/{user[0]}/output"), "open_ai_calls.json")
             logger.debug(f"Logging path determined: {calls_log}")
         except Exception as e:
             logger.error(f"Error determining the log path: {str(e)}")
@@ -242,8 +242,9 @@ class LLMLogger:
 
 class LoggerChatModel:
 
-    def __init__(self, llm: Union[OpenAIModel, OllamaModel, ClaudeModel, GeminiModel]):
+    def __init__(self,user,  llm: Union[OpenAIModel, OllamaModel, ClaudeModel, GeminiModel]):
         self.llm = llm
+        self.user = user
         logger.debug(f"LoggerChatModel successfully initialized with LLM: {llm}")
 
     def __call__(self, messages: List[Dict[str, str]]) -> str:
@@ -258,7 +259,7 @@ class LoggerChatModel:
                 parsed_reply = self.parse_llmresult(reply)
                 logger.debug(f"Parsed LLM reply: {parsed_reply}")
 
-                LLMLogger.log_request(
+                LLMLogger.log_request(self.user,
                     prompts=messages, parsed_reply=parsed_reply)
                 logger.debug("Request successfully logged")
 
@@ -356,9 +357,10 @@ class LoggerChatModel:
 
 class GPTAnswerer:
 
-    def __init__(self, config, llm_api_key):
+    def __init__(self, config, llm_api_key, user):
         self.ai_adapter = AIAdapter(config, llm_api_key)
-        self.llm_cheap = LoggerChatModel(self.ai_adapter)
+        self.llm_cheap = LoggerChatModel(user,self.ai_adapter)
+        self.user = user
 
     @property
     def job_description(self):

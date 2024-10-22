@@ -278,12 +278,12 @@ class AIHawkJobManager:
         for job in job_list:            
             if self.is_blacklisted(job.title, job.company, job.link):
                 utils.printyellow(f"Blacklisted {job.title} at {job.company}, skipping...")
-                self.write_to_file(job, f"{user[0]}/skipped")
+                self.write_to_file(job, "skipped")
                 continue
             try:
-                self.write_to_file(job,f'{user[0]}/data')
+                self.write_to_file(job,'data')
             except Exception as e:
-                self.write_to_file(job, f"{user[0]}/failed")
+                self.write_to_file(job, "failed")
                 continue
 
     def apply_jobs(self,user):
@@ -363,22 +363,22 @@ class AIHawkJobManager:
 
             if self.is_blacklisted(job.title, job.company, job.link):
                 logger.debug(f"Job blacklisted: {job.title} at {job.company}")
-                self.write_to_file(job, f"{user[0]}/skipped")
+                self.write_to_file(job, "skipped")
                 continue
             if self.is_already_applied_to_job(job.title, job.company, job.link):
-                self.write_to_file(job, f"{user[0]}/skipped")
+                self.write_to_file(job, "skipped")
                 continue
             if self.is_already_applied_to_company(job.company,user):
-                self.write_to_file(job, f"{user[0]}/skipped")
+                self.write_to_file(job, "skipped")
                 continue
             try:
                 if job.apply_method not in {"Continue", "Applied", "Apply"}:
                     self.easy_applier_component.job_apply(job)
-                    self.write_to_file(job, f"{user[0]}/success")
+                    self.write_to_file(job, "success")
                     logger.debug(f"Applied to job: {job.title} at {job.company}")
             except Exception as e:
                 logger.error(f"Failed to apply for {job.title} at {job.company}: {e}")
-                self.write_to_file(job, f"{user[0]}/failed")
+                self.write_to_file(job, "failed")
                 continue
 
     def write_to_file(self, job, file_name):

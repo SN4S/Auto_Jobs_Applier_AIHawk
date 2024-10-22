@@ -125,16 +125,24 @@ class FileManager:
     def validate_data_folder(user,app_data_folder: Path) -> tuple:
         if not app_data_folder.exists() or not app_data_folder.is_dir():
             raise FileNotFoundError(f"Data folder not found: {app_data_folder}")
+        user_folder = app_data_folder / f"{user[0]}"
+        if not user_folder.exists() or not user_folder.is_dir():
+            raise FileNotFoundError(f"User folder not found: {user_folder}")
 
-        required_files = ['secrets.yaml', 'config.yaml', 'plain_text_resume.yaml']
-        missing_files = [file for file in required_files if not (app_data_folder / file).exists()]
+        required_files = ['config.yaml', 'plain_text_resume.yaml']
+        required_file = ['secrets.yaml']
+        missing_file = [file for file in required_file if not (app_data_folder / file).exists()]
+        missing_files = [file for file in required_files if not (user_folder / file).exists()]
         
-        if missing_files:
-            raise FileNotFoundError(f"Missing files in the data folder: {', '.join(missing_files)}")
+        if missing_file:
+            raise FileNotFoundError(f"Missing file in the data folder: {', '.join(missing_file)}")
 
-        output_folder = app_data_folder / {{user[0]}} /'output'
+        if missing_files:
+            raise FileNotFoundError(f"Missing files in the user folder: {', '.join(missing_files)}")
+
+        output_folder = user_folder /'output'
         output_folder.mkdir(exist_ok=True)
-        return (app_data_folder / 'secrets.yaml', app_data_folder / {user[0]} / 'config.yaml', app_data_folder / {user[0]} /f'plain_text_resume.yaml', output_folder)
+        return (app_data_folder / 'secrets.yaml', user_folder / 'config.yaml', user_folder / 'plain_text_resume.yaml', output_folder)
 
     @staticmethod
     def file_paths_to_dict(resume_file: Path | None, plain_text_resume_file: Path) -> dict:
@@ -176,7 +184,7 @@ def create_and_run_bot(user,parameters, llm_api_key):
         browser = init_browser()
         login_component = AIHawkAuthenticator(browser, sqlite3.connect(app_config.db),user[1])
         apply_component = AIHawkJobManager(browser)
-        gpt_answerer_component = GPTAnswerer(parameters, llm_api_key)
+        gpt_answerer_component = GPTAnswerer(parameters, llm_api_key, user)
         bot = AIHawkBotFacade(login_component, apply_component)
         bot.set_job_application_profile_and_resume(job_application_profile_object, resume_object)
         bot.set_gpt_answerer_and_resume_generator(gpt_answerer_component, resume_generator_manager)
@@ -213,7 +221,7 @@ def get_user_entry(email):
 def main(collect: False, resume: Path = None, email = None):
     try:
         user = get_user_entry(email)
-        data_folder = Path("data_folder")
+        data_folder = Path(f"data_folder")
         secrets_file, config_file, plain_text_resume_file, output_folder = FileManager.validate_data_folder(user,data_folder)
 
         parameters = ConfigValidator.validate_config(config_file)
