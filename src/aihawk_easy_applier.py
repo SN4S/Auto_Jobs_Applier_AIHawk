@@ -690,11 +690,13 @@ class AIHawkEasyApplier:
             # Look for existing answer if it's not a cover letter field
             existing_answer = None
             if not is_cover_letter:
-                for item in self.all_data:
-                    if self._sanitize_text(item['question']) == self._sanitize_text(question_text) and item.get('type') == question_type:
-                        existing_answer = item['answer']
-                        logger.debug(f"Found existing answer: {existing_answer}")
-                        break
+                print('Whoops')
+                # for item in self.all_data:
+                #     if self._sanitize_text(item['question']) == self._sanitize_text(question_text) and item.get('type') == question_type:
+                #         existing_answer = item['answer']
+                #         print(item['answer'])
+                #         logger.debug(f"Found existing answer: {existing_answer}")
+                #         break
 
             if existing_answer and not is_cover_letter:
                 answer = existing_answer
@@ -710,10 +712,10 @@ class AIHawkEasyApplier:
             self._enter_text(text_field, answer)
             logger.debug("Entered answer into the textbox.")
 
-            # Save non-cover letter answers
-            if not is_cover_letter:
-                self._save_questions_to_json({'type': question_type, 'question': question_text, 'answer': answer})
-                logger.debug("Saved non-cover letter answer to JSON.")
+            # # Save non-cover letter answers
+            # if not is_cover_letter:
+            #     self._save_questions_to_json({'type': question_type, 'question': question_text, 'answer': answer})
+            #     logger.debug("Saved non-cover letter answer to JSON.")
 
             time.sleep(1)
             text_field.send_keys(Keys.ARROW_DOWN)

@@ -72,16 +72,16 @@ class AIHawkBotFacade:
         self.state.logged_in = True
         logger.debug("Login process completed successfully")
 
-    def start_apply(self):
+    def start_apply(self,user):
         logger.debug("Starting apply process")
         self.state.validate_state(['logged_in', 'job_application_profile_set', 'gpt_answerer_set', 'parameters_set'])
-        self.apply_component.start_applying()
+        self.apply_component.start_applying(user)
         logger.debug("Apply process started successfully")
         
-    def start_collect_data(self):
+    def start_collect_data(self,user):
         logger.debug("Starting collecting data process")
         self.state.validate_state(['logged_in', 'job_application_profile_set', 'gpt_answerer_set', 'parameters_set'])
-        self.apply_component.start_collecting_data()
+        self.apply_component.start_collecting_data(user)
         logger.debug("Collecting data process started successfully")
 
     def _validate_non_empty(self, value, name):

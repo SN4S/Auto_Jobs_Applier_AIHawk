@@ -132,9 +132,9 @@ class FileManager:
         if missing_files:
             raise FileNotFoundError(f"Missing files in the data folder: {', '.join(missing_files)}")
 
-        output_folder = app_data_folder / 'output'
+        output_folder = app_data_folder / {{user[0]}} /'output'
         output_folder.mkdir(exist_ok=True)
-        return (app_data_folder / 'secrets.yaml', app_data_folder / 'config.yaml', app_data_folder / 'plain_text_resume.yaml', output_folder)
+        return (app_data_folder / 'secrets.yaml', app_data_folder / {user[0]} / 'config.yaml', app_data_folder / {user[0]} /f'plain_text_resume.yaml', output_folder)
 
     @staticmethod
     def file_paths_to_dict(resume_file: Path | None, plain_text_resume_file: Path) -> dict:
@@ -158,7 +158,7 @@ def init_browser() -> webdriver.Chrome:
     except Exception as e:
         raise RuntimeError(f"Failed to initialize browser: {str(e)}")
 
-def create_and_run_bot(parameters, llm_api_key):
+def create_and_run_bot(user,parameters, llm_api_key):
     try:
         style_manager = StyleManager()
         resume_generator = ResumeGenerator()
@@ -174,7 +174,7 @@ def create_and_run_bot(parameters, llm_api_key):
         job_application_profile_object = JobApplicationProfile(plain_text_resume)
         
         browser = init_browser()
-        login_component = AIHawkAuthenticator(browser, sqlite3.connect('sqlite.db'),"san4es772@gmail.com")
+        login_component = AIHawkAuthenticator(browser, sqlite3.connect(app_config.db),user[1])
         apply_component = AIHawkJobManager(browser)
         gpt_answerer_component = GPTAnswerer(parameters, llm_api_key)
         bot = AIHawkBotFacade(login_component, apply_component)
@@ -184,32 +184,47 @@ def create_and_run_bot(parameters, llm_api_key):
         bot.start_login()
         if (parameters['collectMode'] == True):
             print('Collecting')
-            bot.start_collect_data()
+            bot.start_collect_data(user)
         else:
             print('Applying')
-            bot.start_apply()
+            bot.start_apply(user)
     except WebDriverException as e:
         logger.error(f"WebDriver error occurred: {e}")
     except Exception as e:
         raise RuntimeError(f"Error running the bot: {str(e)}")
 
+def get_user_entry(email):
+    conn = sqlite3.connect(app_config.db)
+    cursor = conn.cursor()
+    query = """
+            SELECT * FROM users
+            WHERE email == ?
+            """
+
+    cursor.execute(query, (email,))
+    entries = cursor.fetchone()
+    conn.close()
+    return entries
 
 @click.command()
 @click.option('--resume', type=click.Path(exists=True, file_okay=True, dir_okay=False, path_type=Path), help="Path to the resume PDF file")
 @click.option('--collect', is_flag=True, help="Only collects data job information into data.json file")
-def main(collect: False, resume: Path = None):
+@click.option('--email', help="User email")
+def main(collect: False, resume: Path = None, email = None):
     try:
+        user = get_user_entry(email)
         data_folder = Path("data_folder")
-        secrets_file, config_file, plain_text_resume_file, output_folder = FileManager.validate_data_folder(data_folder)
-        
+        secrets_file, config_file, plain_text_resume_file, output_folder = FileManager.validate_data_folder(user,data_folder)
+
         parameters = ConfigValidator.validate_config(config_file)
         llm_api_key = ConfigValidator.validate_secrets(secrets_file)
-        
+
         parameters['uploads'] = FileManager.file_paths_to_dict(resume, plain_text_resume_file)
+
         parameters['outputFileDirectory'] = output_folder
         parameters['collectMode'] = collect
-        
-        create_and_run_bot(parameters, llm_api_key)
+
+        create_and_run_bot(user,parameters, llm_api_key)
     except ConfigError as ce:
         logger.error(f"Configuration error: {str(ce)}")
         logger.error(f"Refer to the configuration guide for troubleshooting: https://github.com/feder-cr/Auto_Jobs_Applier_AIHawk?tab=readme-ov-file#configuration {str(ce)}")
@@ -221,23 +236,6 @@ def main(collect: False, resume: Path = None):
         logger.error(f"Runtime error: {str(re)}")
     except Exception as e:
         logger.error(f"An unexpected error occurred: {str(e)}")
-
-
-def init_test_db():
-    conn = sqlite3.connect('sqlite.db')
-    cursor = conn.cursor()
-    cursor.execute("""CREATE TABLE IF NOT EXISTS users(
-    id INTEGER PRIMARY KEY,
-    email TEXT,
-    cookie TEXT,
-    last_run TEXT,
-    sub_end TEXT)""")
-    cookies = [
-        {"name": "g_state", "value": "\"i_l\":0"},
-        ]
-    cookie_string = "; ".join([f'{cookie["name"]}={cookie["value"]}' for cookie in cookies])
-    cursor.execute("""INSERT INTO users (email, cookie) VALUES (?, ? )""", ("san4es772@gmail.com", cookie_string))
-    conn.commit()
 
 if __name__ == "__main__":
     main()
