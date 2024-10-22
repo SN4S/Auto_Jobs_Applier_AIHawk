@@ -10,6 +10,7 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import WebDriverException
 from lib_resume_builder_AIHawk import Resume, FacadeManager, ResumeGenerator, StyleManager
+import app_config
 from src.utils import chrome_browser_options
 from src.llm.llm_manager import GPTAnswerer
 from src.aihawk_authenticator import AIHawkAuthenticator
@@ -121,7 +122,7 @@ class ConfigValidator:
 
 class FileManager:
     @staticmethod
-    def validate_data_folder(app_data_folder: Path) -> tuple:
+    def validate_data_folder(user,app_data_folder: Path) -> tuple:
         if not app_data_folder.exists() or not app_data_folder.is_dir():
             raise FileNotFoundError(f"Data folder not found: {app_data_folder}")
 

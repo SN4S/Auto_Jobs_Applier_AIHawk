@@ -73,7 +73,7 @@ class AIHawkJobManager:
         logger.debug("Setting resume generator manager")
         self.resume_generator_manager = resume_generator_manager
 
-    def start_collecting_data(self):
+    def start_collecting_data(self,user):
         searches = list(product(self.positions, self.locations))
         random.shuffle(searches)
         page_sleep = 0
@@ -92,7 +92,7 @@ class AIHawkJobManager:
                     self.next_job_page(position, location_url, job_page_number)
                     time.sleep(random.uniform(1.5, 3.5))
                     utils.printyellow("Starting the collecting process for this page")
-                    self.read_jobs()
+                    self.read_jobs(user)
                     utils.printyellow("Collecting data on this page has been completed!")
 
                     time_left = minimum_page_time - time.time()
@@ -118,7 +118,7 @@ class AIHawkJobManager:
                 time.sleep(sleep_time)
                 page_sleep += 1
 
-    def start_applying(self):
+    def start_applying(self,user):
         logger.debug("Starting job application process")
         self.easy_applier_component = AIHawkEasyApplier(self.driver, self.resume_path, self.set_old_answers,
                                                           self.gpt_answerer, self.resume_generator_manager)
@@ -152,7 +152,7 @@ class AIHawkJobManager:
                         break
 
                     try:
-                        self.apply_jobs()
+                        self.apply_jobs(user)
                     except Exception as e:
                         logger.error(f"Error during job application: {e}")
                         continue
@@ -260,7 +260,7 @@ class AIHawkJobManager:
             logger.error(f"Error while fetching job elements: {e}")
             return []
 
-    def read_jobs(self):
+    def read_jobs(self,user):
         try:
             no_jobs_element = self.driver.find_element(By.CLASS_NAME, 'jobs-search-two-pane__no-results-banner--expand')
             if 'No matching jobs found' in no_jobs_element.text or 'unfortunately, things aren' in self.driver.page_source.lower():
@@ -278,15 +278,15 @@ class AIHawkJobManager:
         for job in job_list:            
             if self.is_blacklisted(job.title, job.company, job.link):
                 utils.printyellow(f"Blacklisted {job.title} at {job.company}, skipping...")
-                self.write_to_file(job, "skipped")
+                self.write_to_file(job, f"{user[0]}/skipped")
                 continue
             try:
-                self.write_to_file(job,'data')
+                self.write_to_file(job,f'{user[0]}/data')
             except Exception as e:
-                self.write_to_file(job, "failed")
+                self.write_to_file(job, f"{user[0]}/failed")
                 continue
 
-    def apply_jobs(self):
+    def apply_jobs(self,user):
         try:
             no_jobs_element = self.driver.find_element(By.CLASS_NAME, 'jobs-search-two-pane__no-results-banner--expand')
             if 'No matching jobs found' in no_jobs_element.text or 'unfortunately, things aren' in self.driver.page_source.lower():
@@ -363,22 +363,22 @@ class AIHawkJobManager:
 
             if self.is_blacklisted(job.title, job.company, job.link):
                 logger.debug(f"Job blacklisted: {job.title} at {job.company}")
-                self.write_to_file(job, "skipped")
+                self.write_to_file(job, f"{user[0]}/skipped")
                 continue
             if self.is_already_applied_to_job(job.title, job.company, job.link):
-                self.write_to_file(job, "skipped")
+                self.write_to_file(job, f"{user[0]}/skipped")
                 continue
-            if self.is_already_applied_to_company(job.company):
-                self.write_to_file(job, "skipped")
+            if self.is_already_applied_to_company(job.company,user):
+                self.write_to_file(job, f"{user[0]}/skipped")
                 continue
             try:
                 if job.apply_method not in {"Continue", "Applied", "Apply"}:
                     self.easy_applier_component.job_apply(job)
-                    self.write_to_file(job, "success")
+                    self.write_to_file(job, f"{user[0]}/success")
                     logger.debug(f"Applied to job: {job.title} at {job.company}")
             except Exception as e:
                 logger.error(f"Failed to apply for {job.title} at {job.company}: {e}")
-                self.write_to_file(job, "failed")
+                self.write_to_file(job, f"{user[0]}/failed")
                 continue
 
     def write_to_file(self, job, file_name):
@@ -484,11 +484,11 @@ class AIHawkJobManager:
             logger.debug(f"Already applied to job: {job_title} at {company}, skipping...")
         return link_seen
 
-    def is_already_applied_to_company(self, company):
+    def is_already_applied_to_company(self, company, user):
         if not self.apply_once_at_company:
             return False
 
-        output_files = ["success.json"]
+        output_files = [f"{user[0]}/success.json"]
         for file_name in output_files:
             file_path = self.output_file_directory / file_name
             if file_path.exists():
