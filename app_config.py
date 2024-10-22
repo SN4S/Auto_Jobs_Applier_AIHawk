@@ -11,3 +11,5 @@ MINIMUM_LOG_LEVEL can only be one of the followings:
 MINIMUM_LOG_LEVEL = "DEBUG"
 
 MINIMUM_WAIT_TIME = 60
+
+db = "sqlite.db"
