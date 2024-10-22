@@ -146,7 +146,7 @@ class LLMLogger:
 
         try:
             calls_log = os.path.join(
-                Path(f"data_folder/{user[0]}/output"), "open_ai_calls.json")
+                Path(f"data_folder/output"), "open_ai_calls.json")
             logger.debug(f"Logging path determined: {calls_log}")
         except Exception as e:
             logger.error(f"Error determining the log path: {str(e)}")
