@@ -88,18 +88,19 @@ def fetch_entries(dbname):
     conn.close()
     return entries
 
-init_test_db()
-# n = 2
-users = fetch_entries(app_config.db)
-commands=[]
-if users:
-    for user in users:
-        try:
-            subprocess.run(["python3", "main.py", "--email" ,f"{user[0]}"], timeout=600)
-        except subprocess.TimeoutExpired as e:
-            print(e)
-            subprocess.call("pkill chrome", shell=True)
-            sleep(1)
 
-else:
-    print("No users found")
+while True:
+    users = fetch_entries(app_config.db)
+    if users:
+        print("Users fetched")
+        for user in users:
+            try:
+                subprocess.run(["python3", "main.py", "--email", f"{user[0]}"], timeout=600)
+            except subprocess.TimeoutExpired as e:
+                print(e)
+                subprocess.call("pkill chrome", shell=True)
+                sleep(1)
+        users=[]
+    else:
+        sleep(30)
+        users = fetch_entries(app_config.db)
