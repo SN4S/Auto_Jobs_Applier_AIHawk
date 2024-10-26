@@ -94,7 +94,7 @@ commands=[]
 if users:
     for user in users:
         try:
-            subprocess.run(["python3", "main.py", "--email" ,f"{user[0]}"], timeout=10)
+            subprocess.run(["python3", "main.py", "--email" ,f"{user[0]}"], timeout=600)
         except subprocess.TimeoutExpired as e:
             print(e)
             subprocess.call("pkill chrome", shell=True)
