@@ -2,6 +2,7 @@ import sqlite3
 import subprocess
 from subprocess import call
 from datetime import datetime
+from time import sleep
 import app_config
 
 def init_test_db():
@@ -98,6 +99,7 @@ if users:
         except subprocess.TimeoutExpired as e:
             print(e)
             subprocess.call("pkill chrome", shell=True)
+            sleep(1)
 
 else:
     print("No users found")
