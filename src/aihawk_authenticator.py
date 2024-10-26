@@ -42,7 +42,7 @@ class AIHawkAuthenticator:
             self.driver.add_cookie(cookie)
         time.sleep(1)
         self.driver.get("https://www.linkedin.com/")
-        time.sleep(4)
+        time.sleep(1)
         if 'feed' in self.driver.current_url:
             logger.debug("User is already logged in.")
             return

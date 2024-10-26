@@ -2,6 +2,7 @@ import os
 import re
 import sqlite3
 import sys
+from datetime import datetime
 from pathlib import Path
 import yaml
 import click
@@ -180,7 +181,7 @@ def create_and_run_bot(user,parameters, llm_api_key):
         resume_generator_manager.selected_style = "Default"
         
         job_application_profile_object = JobApplicationProfile(plain_text_resume)
-        
+        update_last_run(user[0])
         browser = init_browser()
         login_component = AIHawkAuthenticator(browser, sqlite3.connect(app_config.db),user[1])
         apply_component = AIHawkJobManager(browser)

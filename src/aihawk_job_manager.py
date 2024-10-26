@@ -1,6 +1,7 @@
 import json
 import os
 import random
+import sqlite3
 import time
 from itertools import product
 from pathlib import Path
@@ -9,6 +10,7 @@ from inputimeout import inputimeout, TimeoutOccurred
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 
+import app_config
 import src.utils as utils
 from app_config import MINIMUM_WAIT_TIME
 from src.job import Job
@@ -164,9 +166,10 @@ class AIHawkJobManager:
                     # Ask user if they want to skip waiting, with timeout
                     if time_left > 0:
                         try:
-                            user_input = inputimeout(
-                                prompt=f"Sleeping for {time_left} seconds. Press 'y' to skip waiting. Timeout 60 seconds : ",
-                                timeout=60).strip().lower()
+                            # user_input = inputimeout(
+                            #     prompt=f"Sleeping for {time_left} seconds. Press 'y' to skip waiting. Timeout 60 seconds : ",
+                            #     timeout=60).strip().lower()
+                            user_input='y'
                         except TimeoutOccurred:
                             user_input = ''  # No input after timeout
                         if user_input == 'y':
@@ -180,9 +183,11 @@ class AIHawkJobManager:
                     if page_sleep % 5 == 0:
                         sleep_time = random.randint(5, 34)
                         try:
-                            user_input = inputimeout(
-                                prompt=f"Sleeping for {sleep_time / 60} minutes. Press 'y' to skip waiting. Timeout 60 seconds : ",
-                                timeout=60).strip().lower()
+                            # user_input = inputimeout(
+                            #     prompt=f"Sleeping for {sleep_time / 60} minutes. Press 'y' to skip waiting. Timeout 60 seconds : ",
+                            #     timeout=60).strip().lower()
+
+                            user_input = 'y'
                         except TimeoutOccurred:
                             user_input = ''  # No input after timeout
                         if user_input == 'y':
@@ -199,9 +204,10 @@ class AIHawkJobManager:
 
             if time_left > 0:
                 try:
-                    user_input = inputimeout(
-                        prompt=f"Sleeping for {time_left} seconds. Press 'y' to skip waiting. Timeout 60 seconds : ",
-                        timeout=60).strip().lower()
+                    # user_input = inputimeout(
+                    #     prompt=f"Sleeping for {time_left} seconds. Press 'y' to skip waiting. Timeout 60 seconds : ",
+                    #     timeout=60).strip().lower()
+                    user_input = 'y'
                 except TimeoutOccurred:
                     user_input = ''  # No input after timeout
                 if user_input == 'y':
@@ -285,6 +291,17 @@ class AIHawkJobManager:
             except Exception as e:
                 self.write_to_file(job, "failed")
                 continue
+
+    def add_success(self,id, job):
+        conn = sqlite3.connect(app_config.db)
+        cursor = conn.cursor()
+        query = """
+        INSERT INTO success (user_id, company,title,link,recruiter_link,location,pdf_path)
+        VALUES (?,?,?,?,?,?,?)"""
+        cursor.execute(query, (id, job.company, job.title,job.link, job.recruiter_link, job.location, job.pdf_path))
+        conn.commit()
+        print("Added vacancy")
+        conn.close()
 
     def apply_jobs(self,user):
         try:
@@ -374,6 +391,7 @@ class AIHawkJobManager:
             try:
                 if job.apply_method not in {"Continue", "Applied", "Apply"}:
                     self.easy_applier_component.job_apply(job)
+                    self.add_success(user[0],job)
                     self.write_to_file(job, "success")
                     logger.debug(f"Applied to job: {job.title} at {job.company}")
             except Exception as e:

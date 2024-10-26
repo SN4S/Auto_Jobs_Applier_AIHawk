@@ -53,7 +53,17 @@ def init_test_db():
          "value": "AQLNkyZs4uoHkQAAAZKcgeUX-CTx2ZPKMa6z9SO3JBirr9uJHpOfacIz0TsECMyAykjLf1ntP4pF9qToCl0ia8p2WOGOcgqlb1HZPJrHLYxZMMLCwMf-2vE2-QnVXi0xoD9PBefB6gJo42W6WJySy7IjZQGd_XeFzURDDyb6QyFNSlVIEfvDfyWuj7D70ARcivJKkbAY-ETMhKv00RAlDvBV7FNhANwpkF9TJN04qhNwE6ywFPSakE2ilvnyuRXqGP80QB16cp9RpIidoe2whUaZ6e0NgKfZ5kUu7EAcceETBT_LDIxQfX_IgTUx7NgxZ6JtKkuGTBAl6J84JAczenqZoH3s6e_PT5gXlpCKpb2W9TWtzw"}
     ]
     cookie_string = "; ".join([f'{cookie["name"]}={cookie["value"]}' for cookie in cookies])
-    cursor.execute("""INSERT INTO users (email, cookie) VALUES (?, ? )""", ("san4es772@gmail.com", cookie_string))
+    # cursor.execute("""INSERT INTO users (email, cookie) VALUES (?, ? )""", ("san4es772@gmail.com", cookie_string))
+    cursor.execute("""CREATE TABLE IF NOT EXISTS success(
+            id INTEGER PRIMARY KEY,
+            user_id INTEGER NOT NULL,
+            company TEXT,
+            title TEXT,
+            link TEXT,
+            recruiter_link TEXT,
+            pdf_path TEXT,
+            location TEXT
+        )""")
     conn.commit()
 
 def fetch_entries(dbname):
@@ -90,7 +100,10 @@ if users:
     #     for p in procs:
     #         p.wait()
     for user in users:
-        subprocess.run(["python3", "main.py", "--email" ,f"{user[0]}"])
+        try:
+            subprocess.run(["python3", "main.py", "--email" ,f"{user[0]}"])
+        except subprocess.TimeoutExpired as e:
+            print(e)
 
 else:
     print("No users found")
