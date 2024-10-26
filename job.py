@@ -87,23 +87,17 @@ def fetch_entries(dbname):
     conn.close()
     return entries
 
-# init_test_db()
+init_test_db()
 # n = 2
 users = fetch_entries(app_config.db)
 commands=[]
 if users:
-    # for user in users:
-    #     commands.append(f"python3 main.py --email {user[0]}")
-    #
-    # for j in range(max(int(len(commands)/n), 1)):
-    #     procs = [subprocess.Popen(i, shell=True) for i in commands[j*n: min((j+1)*n, len(commands))] ]
-    #     for p in procs:
-    #         p.wait()
     for user in users:
         try:
-            subprocess.run(["python3", "main.py", "--email" ,f"{user[0]}"])
+            subprocess.run(["python3", "main.py", "--email" ,f"{user[0]}"], timeout=10)
         except subprocess.TimeoutExpired as e:
             print(e)
+            subprocess.call("pkill chrome", shell=True)
 
 else:
     print("No users found")

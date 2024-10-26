@@ -3,6 +3,7 @@ import os
 import random
 import sqlite3
 import time
+from datetime import datetime
 from itertools import product
 from pathlib import Path
 
@@ -221,9 +222,10 @@ class AIHawkJobManager:
             if page_sleep % 5 == 0:
                 sleep_time = random.randint(50, 90)
                 try:
-                    user_input = inputimeout(
-                        prompt=f"Sleeping for {sleep_time / 60} minutes. Press 'y' to skip waiting: ",
-                        timeout=60).strip().lower()
+                    # user_input = inputimeout(
+                    #     prompt=f"Sleeping for {sleep_time / 60} minutes. Press 'y' to skip waiting: ",
+                    #     timeout=60).strip().lower()
+                    user_input='y'
                 except TimeoutOccurred:
                     user_input = ''  # No input after timeout
                 if user_input == 'y':

@@ -215,6 +215,18 @@ def get_user_entry(email):
     conn.close()
     return entries
 
+def update_last_run(id):
+    conn = sqlite3.connect(app_config.db)
+    cursor = conn.cursor()
+    query = """
+                UPDATE users SET last_run = ? WHERE id = ?
+                """
+
+    cursor.execute(query, (int(datetime.now().timestamp()), id,))
+    conn.commit()
+    print("Updated last run")
+    conn.close()
+
 @click.command()
 @click.option('--resume', type=click.Path(exists=True, file_okay=True, dir_okay=False, path_type=Path), help="Path to the resume PDF file")
 @click.option('--collect', is_flag=True, help="Only collects data job information into data.json file")
