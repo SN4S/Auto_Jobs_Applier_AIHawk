@@ -299,9 +299,9 @@ class AIHawkJobManager:
         cursor = conn.cursor()
         pdf_name = job.pdf_path.split('/')[-1]
         query = """
-        INSERT INTO success (user_id, company,title,link,recruiter_link,location,pdf_path)
-        VALUES (?,?,?,?,?,?,?)"""
-        cursor.execute(query, (id, job.company, job.title,job.link, job.recruiter_link, job.location, pdf_name))
+        INSERT INTO success (user_id, company,title,link,recruiter_link,location,pdf_path,apply_date)
+        VALUES (?,?,?,?,?,?,?,?)"""
+        cursor.execute(query, (id, job.company, job.title,job.link, job.recruiter_link, job.location, pdf_name, int(datetime.now().timestamp()),))
         conn.commit()
         print("Added vacancy")
         conn.close()

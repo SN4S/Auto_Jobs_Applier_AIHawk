@@ -63,7 +63,8 @@ def init_test_db():
             link TEXT,
             recruiter_link TEXT,
             pdf_path TEXT,
-            location TEXT
+            location TEXT,
+            apply_date INTEGER
         )""")
     conn.commit()
 
