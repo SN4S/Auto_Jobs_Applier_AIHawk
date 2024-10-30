@@ -297,10 +297,11 @@ class AIHawkJobManager:
     def add_success(self,id, job):
         conn = sqlite3.connect(app_config.db)
         cursor = conn.cursor()
+        pdf_name = job.pdf_path.split('/')[-1]
         query = """
         INSERT INTO success (user_id, company,title,link,recruiter_link,location,pdf_path)
         VALUES (?,?,?,?,?,?,?)"""
-        cursor.execute(query, (id, job.company, job.title,job.link, job.recruiter_link, job.location, job.pdf_path))
+        cursor.execute(query, (id, job.company, job.title,job.link, job.recruiter_link, job.location, pdf_name))
         conn.commit()
         print("Added vacancy")
         conn.close()
