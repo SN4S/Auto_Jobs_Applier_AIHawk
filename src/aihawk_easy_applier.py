@@ -585,6 +585,7 @@ class AIHawkEasyApplier:
                 c.drawText(text_object)
                 c.save()
                 logger.debug(f"Cover letter successfully generated and saved to: {file_path_pdf}")
+                job.cover_letter_path = file_path_pdf
 
                 break
             except Exception as e:

@@ -13,6 +13,7 @@ class Job:
     description: str = ""
     summarize_job_description: str = ""
     pdf_path: str = ""
+    cover_letter_path: str = ""
     recruiter_link: str = ""
 
     def set_summarize_job_description(self, summarize_job_description):

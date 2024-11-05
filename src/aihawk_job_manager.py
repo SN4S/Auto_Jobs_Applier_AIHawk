@@ -298,10 +298,11 @@ class AIHawkJobManager:
         conn = sqlite3.connect(app_config.db)
         cursor = conn.cursor()
         pdf_name = job.pdf_path.split('/')[-1]
+        cover_name = job.cover_letter_path.split('/')[-1]
         query = """
-        INSERT INTO success (user_id, company,title,link,recruiter_link,location,pdf_path,apply_date)
-        VALUES (?,?,?,?,?,?,?,?)"""
-        cursor.execute(query, (id, job.company, job.title,job.link, job.recruiter_link, job.location, pdf_name, int(datetime.now().timestamp()),))
+        INSERT INTO success (user_id, company,title,link,recruiter_link,location,pdf_path,cover_path,apply_date)
+        VALUES (?,?,?,?,?,?,?,?,?)"""
+        cursor.execute(query, (id, job.company, job.title,job.link, job.recruiter_link, job.location, pdf_name,cover_name, int(datetime.now().timestamp()),))
         conn.commit()
         print("Added vacancy")
         conn.close()
@@ -412,7 +413,8 @@ class AIHawkJobManager:
             "link": job.link,
             "job_recruiter": job.recruiter_link,
             "job_location": job.location,
-            "pdf_path": pdf_path
+            "pdf_path": pdf_path,
+            "cover_leter":job.cover_letter_path
         }
         file_path = self.output_file_directory / f"{file_name}.json"
         if not file_path.exists():
