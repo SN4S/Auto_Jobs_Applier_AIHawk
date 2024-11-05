@@ -63,6 +63,7 @@ def init_test_db():
             link TEXT,
             recruiter_link TEXT,
             pdf_path TEXT,
+            cover_path TEXT,
             location TEXT,
             apply_date INTEGER
         )""")
